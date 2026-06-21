@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Cargo Mate - Munich Maersk">
+<rect width="512" height="512" rx="96" fill="#0b1220"/>
+<rect y="286" width="512" height="226" fill="#13233f"/>
+<line x1="0" y1="298" x2="512" y2="298" stroke="#274063" stroke-width="3" opacity="0.55"/>
+<line x1="0" y1="324" x2="512" y2="324" stroke="#274063" stroke-width="3" opacity="0.35"/>
+<rect x="132" y="234" width="34" height="18" rx="2" fill="#0ea5e9"/>
+<rect x="132" y="212" width="34" height="18" rx="2" fill="#f59e0b"/>
+<rect x="132" y="190" width="34" height="18" rx="2" fill="#22c55e"/>
+<rect x="170" y="234" width="34" height="18" rx="2" fill="#14b8a6"/>
+<rect x="170" y="212" width="34" height="18" rx="2" fill="#e2e8f0"/>
+<rect x="208" y="234" width="34" height="18" rx="2" fill="#3b82f6"/>
+<rect x="208" y="212" width="34" height="18" rx="2" fill="#ef4444"/>
+<rect x="208" y="190" width="34" height="18" rx="2" fill="#0ea5e9"/>
+<rect x="208" y="168" width="34" height="18" rx="2" fill="#14b8a6"/>
+<rect x="246" y="234" width="34" height="18" rx="2" fill="#f59e0b"/>
+<rect x="246" y="212" width="34" height="18" rx="2" fill="#22c55e"/>
+<rect x="246" y="190" width="34" height="18" rx="2" fill="#a855f7"/>
+<rect x="284" y="234" width="34" height="18" rx="2" fill="#e2e8f0"/>
+<rect x="284" y="212" width="34" height="18" rx="2" fill="#3b82f6"/>
+<rect x="322" y="234" width="34" height="18" rx="2" fill="#14b8a6"/>
+<rect x="322" y="212" width="34" height="18" rx="2" fill="#0ea5e9"/>
+<rect x="322" y="190" width="34" height="18" rx="2" fill="#f59e0b"/>
+<rect x="360" y="234" width="34" height="18" rx="2" fill="#a855f7"/>
+<rect x="360" y="212" width="34" height="18" rx="2" fill="#ef4444"/>
+<path d="M70 256 L392 256 Q430 256 452 278 L460 296 Q452 320 430 320 L92 320 Q74 320 70 282 Z" fill="#69b3e2"/>
+<rect x="74" y="308" width="378" height="12" fill="#0b2a47"/>
+<rect x="150" y="206" width="46" height="50" rx="3" fill="#eef3fb"/><rect x="157" y="214" width="32" height="10" fill="#26456b"/><rect x="170" y="188" width="7" height="20" fill="#cfdcef"/>
+<rect x="360" y="214" width="36" height="42" rx="3" fill="#eef3fb"/><rect x="360" y="224" width="36" height="14" fill="#69b3e2"/>
+<polygon points="378.0,221.0 380.0,227.9 386.6,225.1 382.5,231.0 388.7,234.4 381.6,234.9 382.8,241.9 378.0,236.6 373.2,241.9 374.4,234.9 367.3,234.4 373.5,231.0 369.4,225.1 376.0,227.9" fill="#ffffff"/>
+</svg>
