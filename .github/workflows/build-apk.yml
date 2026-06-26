@@ -32,6 +32,14 @@ jobs:
       - name: Copy web app into Android project
         run: npx cap sync android
 
+      - name: Add camera permission to Android manifest
+        run: |
+          M=android/app/src/main/AndroidManifest.xml
+          grep -q 'android.permission.CAMERA' "$M" || \
+            sed -i 's#<application#<uses-permission android:name="android.permission.CAMERA" />\n    <uses-feature android:name="android.hardware.camera" android:required="false" />\n    <application#' "$M"
+          echo "----- AndroidManifest.xml -----"
+          cat "$M"
+
       - name: Build debug APK
         run: |
           cd android
