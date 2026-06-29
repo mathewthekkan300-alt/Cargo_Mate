@@ -447,7 +447,8 @@
   .micHint{font-size:12px;color:var(--muted);margin:4px 2px 0;min-height:14px;}
   .micLangRow{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);margin:8px 2px 0;}
   .micLangRow select{flex:0 0 auto;padding:5px 8px;font-size:12.5px;border-radius:7px;}
-  .app{position:relative;display:flex;flex-direction:column;height:100vh;height:100dvh;overflow:hidden;}
+  .app{position:relative;display:flex;flex-direction:column;height:100vh;overflow:hidden;}
+  body.fitscr .app{height:var(--appvh,100vh);}
   @media(min-width:480px){
     html{background:#000;}
     body{background:#000;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:18px 0;}
@@ -959,7 +960,7 @@
     <input id="setVessel" placeholder="e.g. MUNICH-MAERSK" autocapitalize="characters" />
     <div id="syncStat" class="dghint" style="margin-top:6px">Sync off - set a code to share with other phones.</div>
     <div class="lbl">Display</div>
-    <div class="opts"><button class="opt" id="toggleHelp">Help text</button></div>
+    <div class="opts"><button class="opt" id="toggleHelp">Help text</button><button class="opt" id="toggleFit">Fit to screen</button></div>
     <div class="lbl">New call</div>
     <div class="opts"><button class="opt" id="resetStatus">⟳ Archive &amp; start new call</button><button class="opt" id="openArchive">📂 Past calls</button></div>
     <div class="row">
@@ -1318,7 +1319,7 @@ function populateVoyageSettings(){
   document.getElementById("setImo").value=state.imo||"";
   document.getElementById("setVessel").value=state.vesselCode||"";syncStatusRender(); updateTouchBtn();
 }
-function openSettings(){populateVoyageSettings(); updateHelpBtn(); openSheet("setSheet");}
+function openSettings(){populateVoyageSettings(); updateHelpBtn(); if(typeof updateFitBtn==="function")updateFitBtn(); openSheet("setSheet");}
 function openVoyage(){populateVoyageSettings(); openSheet("voyageSheet");}
 function renderPortSelect(){
   const sel=document.getElementById("setPort");
@@ -2462,6 +2463,12 @@ function applyHelp(){document.body.classList.toggle("nohelp",!helpOn());}
 function updateHelpBtn(){var b=document.getElementById("toggleHelp");if(b){b.classList.toggle("sel",helpOn());b.textContent="Help text — "+(helpOn()?"On":"Off");}}
 document.getElementById("toggleHelp").onclick=function(){state.help=!helpOn();save();applyHelp();updateHelpBtn();};
 function updateTouchBtn(){var b=document.getElementById("toggleTouch");if(b){b.classList.toggle("sel",!!state.bigTouch);b.textContent="Large touch (for gloves)"+(state.bigTouch?"  ✓":"");}}
+function fitOn(){return !!state.fitScreen;}
+function setAppVH(){if(fitOn()){var h=(window.visualViewport&&window.visualViewport.height)?window.visualViewport.height:window.innerHeight;document.documentElement.style.setProperty("--appvh",h+"px");}else{document.documentElement.style.removeProperty("--appvh");}}
+function applyFit(){document.body.classList.toggle("fitscr",fitOn());setAppVH();if(typeof stFit==="function"){try{stFit();}catch(e){}}}
+function updateFitBtn(){var b=document.getElementById("toggleFit");if(b){b.classList.toggle("sel",fitOn());b.textContent="Fit to screen"+(fitOn()?"  ✓":"");}}
+var _fitBtn=document.getElementById("toggleFit");if(_fitBtn)_fitBtn.onclick=function(){state.fitScreen=!fitOn();save();applyFit();updateFitBtn();};
+window.addEventListener("resize",setAppVH);window.addEventListener("orientationchange",function(){setTimeout(setAppVH,300);});if(window.visualViewport){window.visualViewport.addEventListener("resize",setAppVH);}
 
 /* ===== Sheet open / close (restored) ===== */
 var SHEET_STACK=[],CUR_SHEET=null;
@@ -2496,19 +2503,19 @@ function closeSheets(){if(SHEET_STACK.length){showSheet(SHEET_STACK.pop());}else
 document.getElementById("btnMenu").onclick=function(){openSheet("shipSheet");};
 
 /* ===== Boot (restored) ===== */
-applyTheme();applyBig();applyHelp();render();
+applyTheme();applyBig();applyHelp();if(typeof applyFit==="function")applyFit();render();
 setTimeout(function(){var sp=document.getElementById("splash");if(sp)sp.classList.add("hide");},3000);
 if("serviceWorker" in navigator && location.protocol.indexOf("http")===0){navigator.serviceWorker.register("sw.js").catch(function(){});}
 
 /* ===== Cloud sync (Firebase) - PASTE YOUR PROJECT CONFIG BELOW ===== */
-var FIREBASE_CONFIG={apiKey:"",authDomain:"",projectId:"",storageBucket:"",messagingSenderId:"",appId:""};
+var FIREBASE_CONFIG={apiKey:"AIzaSyByNU-84EytFBd8x5aQEtK1z2TnKcrVfNk",authDomain:"cargo-mate-b1d72.firebaseapp.com",projectId:"cargo-mate-b1d72",storageBucket:"cargo-mate-b1d72.firebasestorage.app",messagingSenderId:"341757398228",appId:"1:341757398228:web:04f85832be545bcb0eff41"};
 var SYNC={db:null,storage:null,code:"",status:"off",unsubState:null,unsubFiles:null,applying:false,t:null};
 function syncStatusRender(){var el=document.getElementById("syncStat");if(!el)return;var m={off:"Sync off - set a code to share with other phones.",connecting:"Connecting...",synced:"✔ Synced with phones on code "+SYNC.code,offline:"⏳ Offline - will sync when back online",noconfig:"Sync not set up yet (no Firebase project configured).",error:"Sync error - check the code / connection."};el.textContent=m[SYNC.status]||"";}
 function syncSet(st){SYNC.status=st;syncStatusRender();}
 function syncInit(){if(!window.firebase||!FIREBASE_CONFIG.projectId){syncSet("noconfig");return;}try{firebase.initializeApp(FIREBASE_CONFIG);}catch(e){}try{SYNC.db=firebase.firestore();}catch(e){}try{SYNC.storage=firebase.storage();}catch(e){}if(SYNC.db){try{SYNC.db.enablePersistence({synchronizeTabs:true}).catch(function(){});}catch(e){}}syncSetCode(state.vesselCode||"");}
 function syncSlim(st){var o={};for(var k in st){if(/Rows$|Cols$|Header$|Struct$/.test(k))continue;o[k]=st[k];}return o;}
 function syncSetCode(code){code=(code||"").trim().toUpperCase();SYNC.code=code;if(SYNC.unsubState){SYNC.unsubState();SYNC.unsubState=null;}if(SYNC.unsubFiles){SYNC.unsubFiles();SYNC.unsubFiles=null;}if(!SYNC.db||!code){syncSet(SYNC.db?"off":"noconfig");return;}syncSet("connecting");var ref=SYNC.db.collection("vessels").doc(code);SYNC.unsubState=ref.onSnapshot({includeMetadataChanges:true},function(snap){if(snap.metadata.hasPendingWrites){return;}var d=snap.data();if(d&&d.state){try{mergeRemoteState(JSON.parse(d.state));}catch(e){}}syncSet(snap.metadata.fromCache?"offline":"synced");},function(){syncSet("error");});SYNC.unsubFiles=ref.collection("meta").doc("files").onSnapshot(function(snap){var d=snap.data();if(d)syncPullFiles(d);},function(){});syncPushState();}
-function mergeRemoteState(r){SYNC.applying=true;try{if(r.bays&&r.bays.length){var byId={};state.bays.forEach(function(b){byId[b.id]=b;});r.bays.forEach(function(rb){var lb=byId[rb.id];if(!lb||(rb.updated||0)>(lb.updated||0))byId[rb.id]=rb;});state.bays=Object.keys(byId).map(function(k){return byId[k];});}if((r._ts||0)>(state._ts||0)){["ship","loa","teu","imo","port","callDate","officer","mood","theme","bigTouch","help","reeferMon","reeferMonSel","voyageNo","voyageFrom","voyageTo","monDate","handover","handoverPoints","activities","ports","cranes","filter","dg","oog","loadplan","dischplan","arrival","departure","stowplan","cargo","blueprints","dgSrc","oogSrc","loadplanSrc","dischplanSrc","stowLP","stowDP"].forEach(function(k){if(r[k]!==undefined)state[k]=r[k];});state._ts=r._ts;}save();applyTheme();applyBig();applyHelp();render();}catch(e){}SYNC.applying=false;}
+function mergeRemoteState(r){SYNC.applying=true;try{if(r.bays&&r.bays.length){var byId={};state.bays.forEach(function(b){byId[b.id]=b;});r.bays.forEach(function(rb){var lb=byId[rb.id];if(!lb||(rb.updated||0)>(lb.updated||0))byId[rb.id]=rb;});state.bays=Object.keys(byId).map(function(k){return byId[k];});}if((r._ts||0)>(state._ts||0)){["ship","loa","teu","imo","port","callDate","officer","mood","theme","bigTouch","help","reeferMon","reeferMonSel","voyageNo","voyageFrom","voyageTo","monDate","handover","handoverPoints","activities","ports","cranes","filter","dg","oog","loadplan","dischplan","arrival","departure","stowplan","cargo","blueprints","dgSrc","oogSrc","loadplanSrc","dischplanSrc","stowLP","stowDP"].forEach(function(k){if(r[k]!==undefined)state[k]=r[k];});state._ts=r._ts;}save();applyTheme();applyBig();applyHelp();if(typeof applyFit==="function")applyFit();render();}catch(e){}SYNC.applying=false;}
 function syncPushState(){if(!SYNC.db||!SYNC.code||SYNC.applying)return;clearTimeout(SYNC.t);SYNC.t=setTimeout(function(){state._ts=Date.now();try{SYNC.db.collection("vessels").doc(SYNC.code).set({state:JSON.stringify(syncSlim(state)),ts:state._ts},{merge:true}).then(function(){syncSet("synced");}).catch(function(){syncSet("offline");});}catch(e){}},800);}
 function syncPullFiles(d){state.fileTs=state.fileTs||{};Object.keys(d).forEach(function(key){var info=d[key];if(!info||!info.url)return;if((info.ts||0)<=(state.fileTs[key]||0))return;fetch(info.url).then(function(r){return r.blob();}).then(function(blob){dgPut(blob,function(){state.fileTs[key]=info.ts;save();syncRefreshFiles();},key,true);}).catch(function(){});});}
 function syncRefreshFiles(){try{tryLoadStow();}catch(e){}try{tryLoadStowPlan();}catch(e){}try{tryLoadCargo();}catch(e){}try{buildDG();}catch(e){}render();}
