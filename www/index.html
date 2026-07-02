@@ -448,7 +448,7 @@
   .micLangRow{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);margin:8px 2px 0;}
   .micLangRow select{flex:0 0 auto;padding:5px 8px;font-size:12.5px;border-radius:7px;}
   .app{position:relative;display:flex;flex-direction:column;height:100vh;overflow:hidden;}
-  body.fitscr .app{height:var(--appvh,100vh);}
+  body.fitscr .app{height:var(--appvh,100vh);width:var(--appvw,100vw);max-width:100vw;}
   @media(min-width:480px){
     html{background:#000;}
     body{background:#000;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:18px 0;}
@@ -457,6 +457,7 @@
       background:#000;
       box-shadow:0 0 0 1px #1b2742, 0 30px 80px rgba(0,0,0,.6);}
     .app::-webkit-scrollbar{width:0;height:0;}
+    body.fitscr .app{width:min(412px,calc(var(--appvw,100vw) - 24px));height:min(880px,calc(var(--appvh,100vh) - 36px));}
     body.day{background:#aeb9c9;}
     body.day .app{background:radial-gradient(900px 520px at 50% -8%,#cfe4fb 0%,#e3effb 60%);box-shadow:0 0 0 1px #bcd2ea,0 30px 80px rgba(20,50,90,.3);}
   }
@@ -746,6 +747,26 @@
   #shipSheet .summary{flex-wrap:wrap;gap:7px;}
   #shipSheet .summary .stat{flex:1 1 28%;}
   .chip.fx{min-width:0;flex:1 1 0;text-align:center;padding:7px 4px;font-size:11.5px;justify-content:center;}
+
+  /* ===== Vessel & operations panel — visual polish ===== */
+  #shipSheet .sheet{background:linear-gradient(180deg,#101a30 0%,#0c1426 55%,#0a1120 100%);padding:20px 18px calc(20px + var(--safe-bot));display:flex;flex-direction:column;overflow-y:auto;}
+  #shipSheet .hubkick{letter-spacing:2px;opacity:.9;}
+  #shipSheet h2{margin:2px 0 8px;font-size:22px;letter-spacing:.2px;}
+  #shipSheet .oowtag{display:inline-block;width:auto;align-self:flex-start;background:rgba(59,130,246,.14);border-color:rgba(59,130,246,.4);color:#9fc0f0;font-weight:600;border-radius:999px;padding:4px 12px;margin:0 0 10px;}
+  #shipSheet .shipimg{border-radius:14px;border-color:rgba(122,162,224,.25);box-shadow:0 8px 24px rgba(0,0,0,.35);}
+  #shipSheet .shipspecs{margin-top:10px;margin-bottom:2px;border:1px solid var(--line);border-radius:12px;background:rgba(255,255,255,.03);padding:9px 4px;}
+  #shipSheet .shipspecs span{font-size:12.5px;font-weight:600;color:#b9c9e4;}
+  #shipSheet .sheet .lbl{margin:16px 2px 8px;font-weight:800;letter-spacing:1.2px;color:#7aa2e0;}
+  #shipSheet .summary{background:rgba(255,255,255,.03);border:1px solid var(--line);border-radius:14px;padding:12px;}
+  #shipSheet .vrow{font-size:13px;padding:6px 9px;}
+  #shipSheet .vrow:hover{background:rgba(255,255,255,.05);}
+  #shipSheet .vdot{width:8px;height:8px;box-shadow:0 0 6px currentColor;}
+  #shipSheet .opsgrid{gap:9px;margin-top:2px;}
+  #shipSheet .opsgrid .op{background:rgba(255,255,255,.035);border:1px solid rgba(122,162,224,.18);border-radius:14px;padding:13px 4px 11px;gap:7px;min-height:76px;transition:border-color .15s,background .15s;}
+  #shipSheet .opsgrid .op:hover{background:rgba(122,162,224,.10);border-color:rgba(122,162,224,.4);}
+  #shipSheet .opsgrid .op:active{transform:scale(.96);background:rgba(122,162,224,.16);}
+  #shipSheet .opsgrid .op svg{width:26px;height:26px;}
+  #shipSheet .opsgrid .op .oplbl{font-size:11px;font-weight:700;letter-spacing:.2px;color:#c6d5ee;}
 </style>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
@@ -1522,7 +1543,7 @@ document.getElementById("activityList").addEventListener("input",function(e){
 });
 var dgURL_unused=null;
 function dgOpenDB(cb,err){try{var r=indexedDB.open("cargomate_dg",1);r.onupgradeneeded=function(){r.result.createObjectStore("files");};r.onsuccess=function(){cb(r.result);};r.onerror=function(){err&&err();};}catch(e){err&&err();}}
-function dgPut(file,done,key,noSync){key=key||"dg";dgOpenDB(function(db){var tx=db.transaction("files","readwrite");tx.objectStore("files").put(file,key);tx.oncomplete=function(){if(!noSync){try{syncUploadFile(key,file);}catch(e){}}done&&done();};tx.onerror=function(){alert("Could not save the file.");};},function(){alert("Offline storage unavailable.");});}
+function dgPut(file,done,key,noSync){key=key||"dg";dgOpenDB(function(db){var tx=db.transaction("files","readwrite");tx.objectStore("files").put(file,key);tx.oncomplete=function(){if(!noSync){try{fileSyncUp(key,file);}catch(e){}}done&&done();};tx.onerror=function(){alert("Could not save the file.");};},function(){alert("Offline storage unavailable.");});}
 function dgGet(done,key){key=key||"dg";dgOpenDB(function(db){var tx=db.transaction("files","readonly");var g=tx.objectStore("files").get(key);g.onsuccess=function(){done(g.result||null);};g.onerror=function(){done(null);};},function(){done(null);});}
 function dgDel(done,key){key=key||"dg";dgOpenDB(function(db){var tx=db.transaction("files","readwrite");tx.objectStore("files").delete(key);tx.oncomplete=function(){done&&done();};},function(){done&&done();});}
 var dgPdfLoading=false,dgPdfWaiters=[];
@@ -2463,12 +2484,13 @@ function applyHelp(){document.body.classList.toggle("nohelp",!helpOn());}
 function updateHelpBtn(){var b=document.getElementById("toggleHelp");if(b){b.classList.toggle("sel",helpOn());b.textContent="Help text — "+(helpOn()?"On":"Off");}}
 document.getElementById("toggleHelp").onclick=function(){state.help=!helpOn();save();applyHelp();updateHelpBtn();};
 function updateTouchBtn(){var b=document.getElementById("toggleTouch");if(b){b.classList.toggle("sel",!!state.bigTouch);b.textContent="Large touch (for gloves)"+(state.bigTouch?"  ✓":"");}}
-function fitOn(){return !!state.fitScreen;}
-function setAppVH(){if(fitOn()){var h=(window.visualViewport&&window.visualViewport.height)?window.visualViewport.height:window.innerHeight;document.documentElement.style.setProperty("--appvh",h+"px");}else{document.documentElement.style.removeProperty("--appvh");}}
-function applyFit(){document.body.classList.toggle("fitscr",fitOn());setAppVH();if(typeof stFit==="function"){try{stFit();}catch(e){}}}
-function updateFitBtn(){var b=document.getElementById("toggleFit");if(b){b.classList.toggle("sel",fitOn());b.textContent="Fit to screen"+(fitOn()?"  ✓":"");}}
+function fitOn(){return state.fitScreen!==false;} /* auto-fit: on by default, user can switch it off */
+function setAppVH(){if(fitOn()){var h=(window.visualViewport&&window.visualViewport.height)?window.visualViewport.height:window.innerHeight;var w=(window.visualViewport&&window.visualViewport.width)?window.visualViewport.width:window.innerWidth;document.documentElement.style.setProperty("--appvh",h+"px");document.documentElement.style.setProperty("--appvw",w+"px");}else{document.documentElement.style.removeProperty("--appvh");document.documentElement.style.removeProperty("--appvw");}}
+function applyFit(){document.body.classList.toggle("fitscr",fitOn());setAppVH();if(typeof stFit==="function"){try{stFit();}catch(e){}}try{sizeBayRows();}catch(e){}}
+function updateFitBtn(){var b=document.getElementById("toggleFit");if(b){b.classList.toggle("sel",fitOn());b.textContent="Fit to screen — "+(fitOn()?"Auto":"Off");}}
 var _fitBtn=document.getElementById("toggleFit");if(_fitBtn)_fitBtn.onclick=function(){state.fitScreen=!fitOn();save();applyFit();updateFitBtn();};
-window.addEventListener("resize",setAppVH);window.addEventListener("orientationchange",function(){setTimeout(setAppVH,300);});if(window.visualViewport){window.visualViewport.addEventListener("resize",setAppVH);}
+var _fitTmr=null;function fitRelayout(){setAppVH();clearTimeout(_fitTmr);_fitTmr=setTimeout(function(){setAppVH();if(typeof stFit==="function"){try{stFit();}catch(e){}}try{sizeBayRows();}catch(e){}},120);}
+window.addEventListener("resize",fitRelayout);window.addEventListener("orientationchange",function(){setTimeout(fitRelayout,300);});if(window.visualViewport){window.visualViewport.addEventListener("resize",fitRelayout);}
 
 /* ===== Sheet open / close (restored) ===== */
 var SHEET_STACK=[],CUR_SHEET=null;
@@ -2480,6 +2502,54 @@ function closeSheets(){if(SHEET_STACK.length){showSheet(SHEET_STACK.pop());}else
 /* swipe down from the top of a panel to close it (mobile) */
 (function(){var sheets=document.querySelectorAll(".scrim .sheet");for(var i=0;i<sheets.length;i++){(function(sh){if(sh.parentNode&&sh.parentNode.classList&&sh.parentNode.classList.contains("side"))return;var sy=0,drag=false;sh.addEventListener("touchstart",function(e){if(e.touches.length!==1){drag=false;return;}var r=sh.getBoundingClientRect();var y=e.touches[0].clientY;if((y-r.top)<=46&&sh.scrollTop<=0){drag=true;sy=y;sh.style.transition="none";}else drag=false;},{passive:true});sh.addEventListener("touchmove",function(e){if(!drag)return;var dy=e.touches[0].clientY-sy;if(dy>0){e.preventDefault();sh.style.transform="translateY("+dy+"px)";}},{passive:false});function end(e){if(!drag)return;drag=false;var t=e.changedTouches&&e.changedTouches[0];var dy=t?(t.clientY-sy):0;sh.style.transition="transform .25s ease";if(dy>90){sh.style.transform="translateY(100%)";setTimeout(function(){if(sh.parentNode&&sh.parentNode.id==="stowSheet"&&typeof closeStow==="function")closeStow();else closeSheets();sh.style.transition="";sh.style.transform="";},220);}else{sh.style.transform="";setTimeout(function(){sh.style.transition="";},260);}}sh.addEventListener("touchend",end);sh.addEventListener("touchcancel",end);})(sheets[i]);}})();
 (function(){var sh=document.querySelector(".scrim.side .sheet");if(!sh)return;var sx=0,sy=0,act=false;sh.addEventListener("touchstart",function(e){if(e.touches.length!==1){act=false;return;}sx=e.touches[0].clientX;sy=e.touches[0].clientY;act=true;sh.style.transition="none";},{passive:true});sh.addEventListener("touchmove",function(e){if(!act)return;var dx=e.touches[0].clientX-sx,dy=e.touches[0].clientY-sy;if(dx<0&&Math.abs(dx)>Math.abs(dy)+4){e.preventDefault();sh.style.transform="translateX("+dx+"px)";}},{passive:false});function end(e){if(!act)return;act=false;var t=e.changedTouches&&e.changedTouches[0];var dx=t?(t.clientX-sx):0;sh.style.transition="transform .25s ease";if(dx<-70){sh.style.transform="translateX(-100%)";setTimeout(function(){closeSheets();sh.style.transition="";sh.style.transform="";},200);}else{sh.style.transform="";setTimeout(function(){sh.style.transition="";},240);}}sh.addEventListener("touchend",end);sh.addEventListener("touchcancel",end);})();
+/* swipe in from the left edge to open the Vessel & operations panel */
+(function(){
+  var scrim=document.getElementById("shipSheet");if(!scrim)return;
+  var sh=scrim.querySelector(".sheet");if(!sh)return;
+  var EDGE=28,sx=0,sy=0,tracking=false,dragging=false,w=0;
+  document.addEventListener("touchstart",function(e){
+    if(e.touches.length!==1)return;
+    if(document.querySelector(".scrim.open"))return; /* something already open */
+    var app=document.querySelector(".app");var left=app?app.getBoundingClientRect().left:0;
+    var x=e.touches[0].clientX;
+    if(x-left>EDGE)return;
+    sx=x;sy=e.touches[0].clientY;tracking=true;dragging=false;
+  },{passive:true});
+  document.addEventListener("touchmove",function(e){
+    if(!tracking)return;
+    var dx=e.touches[0].clientX-sx,dy=e.touches[0].clientY-sy;
+    if(!dragging){
+      if(Math.abs(dy)>Math.abs(dx)+6){tracking=false;return;} /* vertical scroll — give up */
+      if(dx<12)return;
+      dragging=true;w=sh.offsetWidth||300;
+      scrim.classList.add("open");sh.style.transition="none";
+      sh.style.transform="translateX("+(Math.min(0,dx-w))+"px)";
+    }
+    if(dragging){
+      e.preventDefault();
+      sh.style.transform="translateX("+Math.min(0,dx-w)+"px)";
+    }
+  },{passive:false});
+  function end(e){
+    if(!tracking)return;
+    tracking=false;
+    if(!dragging)return;
+    dragging=false;
+    var t=e.changedTouches&&e.changedTouches[0];
+    var dx=t?(t.clientX-sx):0;
+    sh.style.transition="transform .22s ease";
+    if(dx>Math.min(90,w*0.3)){
+      sh.style.transform="translateX(0)";
+      setTimeout(function(){sh.style.transition="";sh.style.transform="";},240);
+      if(typeof SHEET_STACK!=="undefined"){SHEET_STACK=[];CUR_SHEET="shipSheet";}
+    }else{
+      sh.style.transform="translateX(-100%)";
+      setTimeout(function(){scrim.classList.remove("open");sh.style.transition="";sh.style.transform="";if(typeof CUR_SHEET!=="undefined"&&CUR_SHEET==="shipSheet")CUR_SHEET=null;},240);
+    }
+  }
+  document.addEventListener("touchend",end);
+  document.addEventListener("touchcancel",end);
+})();
 /* back gesture / button: close panel first, then "swipe again to exit" */
 (function(){
   var exitArmed=false,exitTimer=null;
@@ -2509,20 +2579,10 @@ if("serviceWorker" in navigator && location.protocol.indexOf("http")===0){naviga
 
 /* ===== Cloud sync (Firebase) - PASTE YOUR PROJECT CONFIG BELOW ===== */
 var FIREBASE_CONFIG={apiKey:"AIzaSyByNU-84EytFBd8x5aQEtK1z2TnKcrVfNk",authDomain:"cargo-mate-b1d72.firebaseapp.com",projectId:"cargo-mate-b1d72",storageBucket:"cargo-mate-b1d72.firebasestorage.app",messagingSenderId:"341757398228",appId:"1:341757398228:web:04f85832be545bcb0eff41"};
-var SYNC={db:null,storage:null,code:"",status:"off",unsubState:null,unsubFiles:null,unsubPhotos:null,applying:false,t:null};
+var SYNC={db:null,storage:null,code:"",status:"off",unsubState:null,unsubFiles:null,unsubPhotos:null,unsubFiles2:null,applying:false,t:null};
 function syncStatusRender(){var el=document.getElementById("syncStat");if(!el)return;var m={off:"Sync off - set a code to share with other phones.",connecting:"Connecting...",synced:"✔ Synced with phones on code "+SYNC.code,offline:"⏳ Offline - will sync when back online",noconfig:"Sync not set up yet (no Firebase project configured).",error:"Sync error - check the code / connection."};el.textContent=m[SYNC.status]||"";}
 function syncSet(st){SYNC.status=st;syncStatusRender();}
 function syncInit(){if(!window.firebase||!FIREBASE_CONFIG.projectId){syncSet("noconfig");return;}try{firebase.initializeApp(FIREBASE_CONFIG);}catch(e){}try{SYNC.db=firebase.firestore();}catch(e){}try{SYNC.storage=firebase.storage();}catch(e){}if(SYNC.db){try{SYNC.db.enablePersistence({synchronizeTabs:true}).catch(function(){});}catch(e){}}syncSetCode(state.vesselCode||"");}
 function syncSlim(st){var o={};for(var k in st){if(/Rows$|Cols$|Header$|Struct$/.test(k))continue;o[k]=st[k];}return o;}
-function syncSetCode(code){code=(code||"").trim().toUpperCase();SYNC.code=code;if(SYNC.unsubState){SYNC.unsubState();SYNC.unsubState=null;}if(SYNC.unsubFiles){SYNC.unsubFiles();SYNC.unsubFiles=null;}if(SYNC.unsubPhotos){SYNC.unsubPhotos();SYNC.unsubPhotos=null;}if(!SYNC.db||!code){syncSet(SYNC.db?"off":"noconfig");return;}syncSet("connecting");var ref=SYNC.db.collection("vessels").doc(code);SYNC.unsubState=ref.onSnapshot({includeMetadataChanges:true},function(snap){if(snap.metadata.hasPendingWrites){return;}var d=snap.data();if(d&&d.state){try{mergeRemoteState(JSON.parse(d.state));}catch(e){}}syncSet(snap.metadata.fromCache?"offline":"synced");},function(){syncSet("error");});SYNC.unsubFiles=ref.collection("meta").doc("files").onSnapshot(function(snap){var d=snap.data();if(d)syncPullFiles(d);},function(){});SYNC.unsubPhotos=ref.collection("photos").onSnapshot(function(snap){snap.docChanges().forEach(function(ch){if(ch.type!=="removed")photoSyncPull(ch.doc.id,ch.doc.data());});},function(){});syncPushState();}
-function mergeRemoteState(r){SYNC.applying=true;try{if(r.bays&&r.bays.length){var byId={};state.bays.forEach(function(b){byId[b.id]=b;});r.bays.forEach(function(rb){var lb=byId[rb.id];if(!lb||(rb.updated||0)>(lb.updated||0))byId[rb.id]=rb;});state.bays=Object.keys(byId).map(function(k){return byId[k];});}if((r._ts||0)>(state._ts||0)){["ship","loa","teu","imo","port","callDate","officer","mood","theme","bigTouch","help","reeferMon","reeferMonSel","voyageNo","voyageFrom","voyageTo","monDate","handover","handoverPoints","activities","ports","cranes","filter","dg","oog","loadplan","dischplan","arrival","departure","stowplan","cargo","blueprints","dgSrc","oogSrc","loadplanSrc","dischplanSrc","stowLP","stowDP"].forEach(function(k){if(r[k]!==undefined)state[k]=r[k];});state._ts=r._ts;}save();applyTheme();applyBig();applyHelp();if(typeof applyFit==="function")applyFit();render();}catch(e){}SYNC.applying=false;}
-function syncPushState(){if(!SYNC.db||!SYNC.code||SYNC.applying)return;clearTimeout(SYNC.t);SYNC.t=setTimeout(function(){state._ts=Date.now();try{SYNC.db.collection("vessels").doc(SYNC.code).set({state:JSON.stringify(syncSlim(state)),ts:state._ts},{merge:true}).then(function(){syncSet("synced");}).catch(function(){syncSet("offline");});}catch(e){}},800);}
-function syncUploadFile(key,blob){if(!SYNC.storage||!SYNC.code)return;var ref=SYNC.storage.ref("vessels/"+SYNC.code+"/"+key);ref.put(blob).then(function(){return ref.getDownloadURL();}).then(function(url){var o={};o[key]={ts:Date.now(),url:url};SYNC.db.collection("vessels").doc(SYNC.code).collection("meta").doc("files").set(o,{merge:true});state.fileTs=state.fileTs||{};state.fileTs[key]=Date.now();}).catch(function(){});}
-function photoSyncUp(key,blob){if(!SYNC.db||!SYNC.code||!blob)return;try{var fr=new FileReader();fr.onload=function(){var data=String(fr.result||"");if(!data||data.length>950000)return;try{SYNC.db.collection("vessels").doc(SYNC.code).collection("photos").doc(key).set({data:data,ts:Date.now()});state.fileTs=state.fileTs||{};state.fileTs[key]=Date.now();}catch(e){}};fr.readAsDataURL(blob);}catch(e){}}
-function photoSyncPull(key,info){if(!info||!info.data)return;state.fileTs=state.fileTs||{};if((info.ts||0)<=(state.fileTs[key]||0))return;try{var parts=String(info.data).split(",");var mime=((parts[0]||"").match(/data:([^;]+);/)||[])[1]||"image/jpeg";var bin=atob(parts[1]||"");var arr=new Uint8Array(bin.length);for(var i=0;i<bin.length;i++)arr[i]=bin.charCodeAt(i);var blob=new Blob([arr],{type:mime});dgPut(blob,function(){state.fileTs[key]=info.ts;save();try{if(typeof renderCCList==="function")renderCCList();}catch(e){}render();},key,true);}catch(e){}}
-function syncPullFiles(d){state.fileTs=state.fileTs||{};Object.keys(d).forEach(function(key){var info=d[key];if(!info||!info.url)return;if((info.ts||0)<=(state.fileTs[key]||0))return;fetch(info.url).then(function(r){return r.blob();}).then(function(blob){dgPut(blob,function(){state.fileTs[key]=info.ts;save();syncRefreshFiles();},key,true);}).catch(function(){});});}
-function syncRefreshFiles(){try{tryLoadStow();}catch(e){}try{tryLoadStowPlan();}catch(e){}try{tryLoadCargo();}catch(e){}try{buildDG();}catch(e){}render();}
-syncInit();
-</script>
-</body>
-</html>
+function syncSetCode(code){code=(code||"").trim().toUpperCase();SYNC.code=code;if(SYNC.unsubState){SYNC.unsubState();SYNC.unsubState=null;}if(SYNC.unsubFiles){SYNC.unsubFiles();SYNC.unsubFiles=null;}if(SYNC.unsubPhotos){SYNC.unsubPhotos();SYNC.unsubPhotos=null;}if(SYNC.unsubFiles2){SYNC.unsubFiles2();SYNC.unsubFiles2=null;}if(!SYNC.db||!code){syncSet(SYNC.db?"off":"noconfig");return;}syncSet("connecting");var ref=SYNC.db.collection("vessels").doc(code);SYNC.unsubState=ref.onSnapshot({includeMetadataChanges:true},function(snap){if(snap.metadata.hasPendingWrites){return;}var d=snap.data();if(d&&d.state){try{mergeRemoteState(JSON.parse(d.state));}catch(e){}}syncSet(snap.metadata.fromCache?"offline":"synced");},function(){syncSet("error");});SYNC.unsubFiles=ref.collection("meta").doc("files").onSnapshot(function(snap){var d=snap.data();if(d)syncPullFiles(d);},function(){});SYNC.unsubPhotos=ref.collection("photos").onSnapshot(function(snap){snap.docChanges().forEach(function(ch){if(ch.type!=="removed")photoSyncPull(ch.doc.id,ch.doc.data());});},function(){});SYNC.unsubFiles2=ref.collection("files").onSnapshot(function(snap){snap.docChanges().forEach(function(ch){if(ch.type!=="removed")fileSyncPull(ch.doc.id,ch.doc.data());});},function(){});syncPushState();}
+function mergeRemoteState(r){SYNC.applying=true;try{if(r.bays&&r.bays.length){var byId={};state.bays.forEach(function(b){byId[b.id]=b;});r.bays.forEach(function(rb){var lb=byId[rb.id];if(!lb||(rb.updated||0)>(lb.updated||0))byId[rb.id]=rb;});state.bays=Object.keys(byId).map(function(k){return byId[k];});}if((r._ts||0)>(state._ts||0)){["ship","loa","teu","imo","port","callDate","officer","mood","theme","bigTouch","help","reeferMon","reeferMonSel","voyageNo","voyageFrom","voyageTo","monDate","handover","handoverPoints","ac
